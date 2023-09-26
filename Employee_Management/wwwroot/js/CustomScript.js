@@ -2,10 +2,12 @@
                                                   //_Layout.cshtml
     var deleteSpan = 'deleteSpan_' + uniqueId;
     var confirmDeleteSpan = 'confirmDeleteSpan_' + uniqueId;
-   console.log("Helooooooo")
+    console.log(deleteSpan)
+    console.log(confirmDeleteSpan)
+
     if (isDeleteClicked) {
         $("#" + deleteSpan).hide();
-        $("#" + confirmDeletespan).show();
+        $("#" + confirmDeleteSpan).show();
     } else {
         $("#" + deleteSpan).show();
         $("#" + confirmDeleteSpan).hide();
