@@ -1,0 +1,7 @@
+﻿.btn{
+    width:75px;
+}
+.imageThumbnail{  /*seetle the size of all images equal*/
+    height:200px;
+    width:auto;
+}

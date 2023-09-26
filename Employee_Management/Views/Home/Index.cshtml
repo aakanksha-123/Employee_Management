@@ -1,0 +1,55 @@
+﻿@model IEnumerable<@Employee>  //remove kel namespace(Employee_Management.Models) ==puted into the _ViewImporte filr //setting up the Employee_Management.Models. file to the namespace into the Viewsimport file
+
+@{
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Employee List";
+}
+@*<table>
+           <thead>
+           <tr>
+               <th>ID</th>
+               <th>Name</th>
+               <th>Department</th>
+           </tr>
+           </thead>
+           <tbody>
+            @foreach(var employee in Model)
+            {
+                <tr>
+                    <td>@employee.Id</td>
+                    <td>@employee.Name</td>
+                    <td>@employee.Department</td>
+                </tr>
+            }
+        </tbody>
+</table>
+
+
+*@
+
+<div class="card-deck">
+    @foreach(var emlpoyee in Model)
+    {
+        var photoPath = "~/Images/" + (emlpoyee.Photopat ?? "noimage.png");
+        <div class="card m-3" style="min-width:18rem; max-width:30.5%;"> <!--to show only 3 image at one row-->
+            <div class="card-header">
+                <h3>@emlpoyee.Name</h3> 
+            </div>
+
+            @*//img tag helper==>unique value we can detec whether the content on browser is changed?   <img class="card-img-top" src="/images/noimage.png?v=y7TjZsr5qEHkQee6Uy9seM_LK7I7gkLkUO-HLrnwEUY" />*@
+            <!--remove the hardcoded value src=   //"~/images/f1.png"  and provide photopath-->
+            <img class="card-img-top imageThumbnail" src="@photoPath" asp-append-version="true" />
+            <div class="card-footer text-center"> 
+              @*  //here we directly mention the url as href="/home/details/...."*@
+             @* //1)appending string (manually)*@
+               @* <a href="/home/details/@emlpoyee.Id">View</a>*@
+
+             @* //2) by using the taghelper*@
+                <a asp-controller="home" asp-action="details" asp-route-id="@emlpoyee.Id" class="btn btn-primary m-1">View</a>
+
+                <a asp-action="edit" asp-controller="home" asp-route-id="@emlpoyee.Id" class="btn btn-primary m-1">Edit</a>
+                <a href="#" class="btn btn-danger m-1">Delete</a>
+                </div>
+            </div>
+    }
+</div>
