@@ -86,10 +86,10 @@ namespace Employee_Management.Models
 
 
 
-            //foreach (var fk in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
-            //{
-            //    fk.DeleteBehavior = DeleteBehavior.Restrict;
-            //}
+            foreach (var fk in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
+            {
+                fk.DeleteBehavior = DeleteBehavior.Restrict;
+            }
 
 
 
