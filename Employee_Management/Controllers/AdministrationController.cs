@@ -7,11 +7,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Security.Cryptography.X509Certificates;
 
-
 namespace Employee_Management.Controllers
 {
     //role based authorization
     [Authorize(Roles = "Admin")]
+    [AllowAnonymous]
+
     /*  [Authorize(Roles = "Admin")]*/ //must be member of both role=Student121 and user=User
     public class AdministrationController : Controller
 
