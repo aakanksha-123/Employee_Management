@@ -83,14 +83,14 @@ namespace Employee_Management.Models
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.seed();
+            { }
 
 
-
-            foreach (var fk in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
-            {
-                fk.DeleteBehavior = DeleteBehavior.Restrict;
+           
+            foreach(var foreignKey in modelBuilder.Model.GetEntityTypes().SelectMany(e=>e.GetForeignKeys())) {
+            
+            foreignKey.DeleteBehavior = DeleteBehavior.Restrict;
             }
-
 
 
         }
