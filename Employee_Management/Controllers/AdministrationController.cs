@@ -202,7 +202,7 @@ namespace Employee_Management.Controllers
 
 
 
-            result = await userManager.AddClaimsAsync(user, model.Claims.Select(y => new Claim(y.ClaimType, y.isSelected ? "true" : "false")));
+            result = await userManager.AddClaimsAsync(user, model.Claims.Select(y => new Claim(y.ClaimType, y.IsSelected ? "true" : "false")));
 
             if (!result.Succeeded)
 
@@ -564,7 +564,7 @@ namespace Employee_Management.Controllers
                 Email = user.Email,
                 UserName = user.UserName,
                 City = user.City,
-                Claims = userClaims.Select(c => c.Value).ToList(),
+                Claims = userClaims.Select(c => c.Type +" : " + c.Value ).ToList(),
                 Roles = (List<string>)userRoles
             };
             return View(model);
