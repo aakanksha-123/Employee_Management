@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 namespace Employee_Management.Controllers
 {
+    [AllowAnonymous]
     //[Route("Home")] //ATTRIBUTE ROUTING
     //ACTION TOKEN  ==> varti home he controller so instead of that we specify controller so controller get replaced with Home controller 
     [Route("[controller]/[action]")]   //ites madetory for that to pass action with home controller, if not it will throw 404 error
