@@ -132,7 +132,7 @@ namespace Employee_Management.Controllers
             return View(model);//passing the model
         }
 
-        [HttpPost]
+   
         //public async Task<IActionResult> ManageUserClaims(UserClaimsViewModel model)
         //{
         //    var user = await userManager.FindByIdAsync(model.UserId);
@@ -202,7 +202,7 @@ namespace Employee_Management.Controllers
 
 
 
-            result = await userManager.AddClaimsAsync(user, model.Claims.Select(y => new Claim(y.ClaimType, y.isSelected ? "true" : "false")));
+            result = await userManager.AddClaimsAsync(user, model.Claims.Select(y => new Claim(y.ClaimType, y.IsSelected ? "true" : "false")));
 
             if (!result.Succeeded)
 
