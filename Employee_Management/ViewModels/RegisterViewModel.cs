@@ -32,7 +32,6 @@ namespace Employee_Management.ViewModels
 {
     public class RegisterViewModel
     {
-
         public string? City { get; set; }
         [Required]
         [EmailAddress]
