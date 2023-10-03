@@ -1,4 +1,6 @@
-﻿@inject SignInManager<ApplicationUser> signInManager;
+﻿@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<ApplicationUser> signInManager;
 
 <!DOCTYPE html>
 
@@ -74,12 +76,12 @@
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" 
                             data-toggle="dropdown" aria-haspopup="true" area-expanded="false">
                               
-                                    Manage
+                                    Manage Roles
                                 </a>
                                 <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                                    <a  class="dropdown-item" asp-controller="administration" asp-action="ListUsers">Users</a>
+                                    <a  class="dropdown-item" asp-controller="Administration" asp-action="ListUsers">Users</a>
                                 
-                                    <a  class="dropdown-item" asp-controller="administration" asp-action="ListRoles">Roles</a>
+                                    <a  class="dropdown-item" asp-controller="Administration" asp-action="ListRoles">Roles</a>
                                     </div>
                             
                         </li>

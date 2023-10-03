@@ -13,16 +13,17 @@ using System.Security.Cryptography.X509Certificates;
 namespace Employee_Management.Controllers
 {
     //role based authorization
-    [Authorize(Roles = "Admin")]
-    [AllowAnonymous]
+    //[Authorize(Policy = "AdminRolePolicy")]
 
-    /*  [Authorize(Roles = "Admin")]*/ //must be member of both role=Student121 and user=User
+   /* [Authorize(Roles = "Admin")] */  //must be member of both role=Student121 and user=User
     public class AdministrationController : Controller
 
     {
         private readonly RoleManager<IdentityRole> roleManager;
         private readonly UserManager<ApplicationUser> userManager;
         private readonly ILogger<AdministrationController> logger;
+        private object userId;
+        private IEnumerable<Claim> claims;
 
         public AdministrationController(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, ILogger<AdministrationController> logger)
         {
@@ -33,7 +34,67 @@ namespace Employee_Management.Controllers
 
         }
 
+
         [HttpGet]
+        public async Task<IActionResult> ManageUserClaims(string userid)
+        {
+            var user = await userManager.FindByIdAsync(userid);
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = $"User with Id={userId} cannot be found";
+                return View("NotFound");
+            }
+            var existingUserClaims = await userManager.GetClaimsAsync(user);
+            var model = new UserClaimsViewModel
+            {
+                UserId = userid,
+            };
+            foreach (Claim claim in ClaimsStore.AlliClaims)
+            {
+                UserClaim userClaim = new UserClaim
+                {
+                    ClaimType = claim.Type,
+                };
+
+
+                if (existingUserClaims.Any(c => c.Type == claim.Type && c.Value=="true"))
+                {
+                    userClaim.IsSelected = true;
+                }
+                model.Claims.Add(userClaim);
+
+            }
+            return View(model);
+        }
+
+
+        //[HttpPost]
+        //public async Task<IActionResult> ManageUserClaims(UserClaimsViewModel model)
+        //{
+        //    var user = await userManager.FindByIdAsync(model.UserId);
+        //    if (user == null)
+        //    {
+        //        ViewBag.ErrorMessage = $"User with Id={userId} cannot be found";
+        //        return View("NotFound");
+        //    }
+        //    var claims = await userManager.GetClaimsAsync(user);
+        //    var result = await userManager.RemoveClaimsAsync(user, claims);
+
+
+
+        //    if (!result.Succeeded)
+        //    {
+        //        ModelState.AddModelError("", "Cannot remove user existing claims");
+        //        return View(model);
+        //    }
+        //    result = await userManager.AddClaimAsync(user, (Claim)model.Claims.Where(c => c.IsSelected).Select(c => new Claim(c.ClaimType, c.ClaimType)));
+        //    return RedirectToAction("EditUser", new { Id = model.UserId });
+        //}
+
+
+
+        [HttpGet]
+        [Authorize(Policy="EditRolePolicy")]
         public async Task<IActionResult> ManageUserRoles(string userId)
         {
             ViewBag.userId = userId;
@@ -68,6 +129,7 @@ namespace Employee_Management.Controllers
 
 
         [HttpPost]
+        [Authorize(Policy = "EditRolePolicy")]
         public async Task<IActionResult> ManageUserRoles(List<UserRolesViewModel> model, string userId)
         {
             // ViewBag.userId = userId;
@@ -99,38 +161,38 @@ namespace Employee_Management.Controllers
         }
 
 
-        [HttpGet]
-        public async Task<IActionResult> ManageUserClaims(string userId)
-        {
-            var user = await userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                ViewBag.ErrorMessage = $"User with ID={userId} cannot be found";
-                return View("NotFound");
+        //[HttpGet]
+        //public async Task<IActionResult> ManageUserClaims(string userId)
+        //{
+        //    var user = await userManager.FindByIdAsync(userId);
+        //    if (user == null)
+        //    {
+        //        ViewBag.ErrorMessage = $"User with ID={userId} cannot be found";
+        //        return View("NotFound");
 
-            }
-            var existingUserClaims = await userManager.GetClaimsAsync(user);
-            var model = new UserClaimsViewModel //model pass
-            {
-                UserId = userId
+        //    }
+        //    var existingUserClaims = await userManager.GetClaimsAsync(user);
+        //    var model = new UserClaimsViewModel //model pass
+        //    {
+        //        UserId = userId
 
-            };
+        //    };
 
-            foreach (Claim claim in ClaimsStore.AlliClaims)
-            {
-                UserClaim userClaim = new UserClaim
-                {
-                    ClaimType = claim.Type,
-                };
+        //    foreach (Claim claim in ClaimsStore.AlliClaims)
+        //    {
+        //        UserClaim userClaim = new UserClaim
+        //        {
+        //            ClaimType = claim.Type,
+        //        };
 
-                if (existingUserClaims.Any(c => c.Type == claim.Type))
-                {
-                    userClaim.IsSelected = true;
-                }
-                model.Claims.Add(userClaim);
-            }
-            return View(model);//passing the model
-        }
+        //        if (existingUserClaims.Any(c => c.Type == claim.Type))
+        //        {
+        //            userClaim.IsSelected = true;
+        //        }
+        //        model.Claims.Add(userClaim);
+        //    }
+        //    return View(model);//passing the model
+        //}
 
    
         //public async Task<IActionResult> ManageUserClaims(UserClaimsViewModel model)
@@ -227,6 +289,7 @@ namespace Employee_Management.Controllers
 
 
         [HttpPost]
+        [Authorize(Policy ="DeleteRolePolicy")]
         public async Task<IActionResult> DeleteUser(string id)
         {
             var user = await userManager.FindByIdAsync(id);
@@ -255,6 +318,7 @@ namespace Employee_Management.Controllers
 
 
         [HttpPost]
+        [Authorize(Policy="DeleteRolePolicy")]
         public async Task<IActionResult> DeleteRole(string id)
         {
             var role = await roleManager.FindByIdAsync(id);
@@ -268,7 +332,7 @@ namespace Employee_Management.Controllers
 
                 try
                 {
-                    throw new Exception("Test Exception");
+                   // throw new Exception("Test Exception");
                     var result = await roleManager.DeleteAsync(role);
                     if (result.Succeeded)
                     {
@@ -280,11 +344,13 @@ namespace Employee_Management.Controllers
                         ModelState.AddModelError("", error.Description);
                     }
                     return View("ListRoles");
-                }catch(DbUpdateException ex)
+                }
+                catch(DbUpdateException ex)
                 {
                     logger.LogError($"Error deleting role{ex}");
                     @ViewBag.ErrorTitle = $"{role.Name} role is in use";
-                    @ViewBag.ErrorMessage = $"{role.Name} role cannot be deleted as there are users" + $" in this role.If you want to delete this role plz remove the users from" +
+                    @ViewBag.ErrorMessage = $"{role.Name} role cannot be deleted as there are users" + 
+                        $" in this role.If you want to delete this role plz remove the users from" +
                               $"the role and then try to delete";
                     return View("Error");
                 }
@@ -300,11 +366,11 @@ namespace Employee_Management.Controllers
 
 
 
-        [HttpGet]
-        public IActionResult CreateRole()
-        {
-            return View();
-        }
+        //[HttpGet]
+        //public IActionResult CreateRole()
+        //{
+        //    return View();
+        //}
 
         [HttpGet]
         public IActionResult ListUsers()// to retrieve the list of all users
@@ -383,6 +449,7 @@ namespace Employee_Management.Controllers
         //}
 
         [HttpGet]
+        //[Authorize(Policy ="EditRolePolicy")]
         public async Task<IActionResult> EditRole(string id)
         {
             var role = await roleManager.FindByIdAsync(id);
@@ -409,6 +476,12 @@ namespace Employee_Management.Controllers
 
             return View(model); // This line should be outside the foreach loop
         }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
 
 
 
@@ -419,6 +492,7 @@ namespace Employee_Management.Controllers
 
 
         [HttpPost]
+        //[Authorize(Policy = "EditRolePolicy")]
         public async Task<IActionResult> EditRole(EditRoleViewModel model)
         {
             var role = await roleManager.FindByIdAsync(model.Id);

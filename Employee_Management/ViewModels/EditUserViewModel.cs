@@ -6,7 +6,7 @@ namespace Employee_Management.ViewModels
 {
     public class EditUserViewModel
     {
-        public EditUserViewModel()
+        public EditUserViewModel() //INITIALIZE TO AVOID NULL EXCEPTION REFERANCE ERROR
         {
             Claims=new List<string>();
             Roles = new List<string>();

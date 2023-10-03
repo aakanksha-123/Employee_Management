@@ -150,6 +150,8 @@ using NLog.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Employee_Management.Security;
+
 
 internal class Program
 {
@@ -186,6 +188,22 @@ internal class Program
             var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build(); options.Filters.Add(new AuthorizeFilter(policy));
         }).AddXmlSerializerFormatters();
 
+
+        builder.Services.AddAuthentication().AddGoogle(options =>
+        {
+            options.ClientId = "85889254143-l8l0cfd32ccdsg2b57joc0chp19vfjko.apps.googleusercontent.com";
+            options.ClientSecret = "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";
+
+        })
+        .AddFacebook(Options =>
+        {
+            Options.AppId = "976428496779482";
+            Options.AppSecret = "4e1a170c21b40653b597677d1fdd1efa";
+        });
+
+
+
+
         // Add logger
         builder.Logging.AddConsole();
         builder.Logging.AddDebug();
@@ -195,8 +213,40 @@ internal class Program
         // Use SQL Employee Repository with Scoped lifetime
         builder.Services.AddScoped<IEmployeeRepository, SQLEmployeeRepository>();
 
+        builder.Services.AddSingleton<IAuthorizationHandler,CanEditOnlyOtherAdminRolesAndClaimsHandler>();
+
+        builder.Services.AddSingleton<IAuthorizationHandler,SuperAdminHandler>();
+
         // Add MVC
         builder.Services.AddMvc(option => option.EnableEndpointRouting = false);
+
+
+        //change acessdenied path
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.AccessDeniedPath = new PathString("/Administration/AccessDenied");
+        });
+
+        //use this property to protect the controller actions or controller
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("DeleteRolePolicy", policy => policy.RequireClaim("Delete Role"));
+
+            //options.AddPolicy("EditRolePolicy", policy => policy.RequireClaim("Edit Role", "true").RequireRole("Admin").RequireRole("Super Admin"));
+            ////////////now use the fun type create our own customize policy
+            ///
+            //options.AddPolicy("EditRolePolicy", policy => policy.RequireAssertion(context => 
+            //context.User.IsInRole("Admin") && context.User.HasClaim(claim => 
+            //claim.Type == "Edit Role" && claim.Value == "true")|| context.User.IsInRole("Super Admin")));
+
+            options.AddPolicy("EditRolePolicy", policy => policy.AddRequirements(new ManageAdminRolesAndClaimsRequirement()));
+
+            //options.InvokeHandlersAfterFailure = false;
+
+            options.AddPolicy("AdminRolePolicy", policy => policy.RequireRole("Admin"));
+        });
+
+          
 
         var app = builder.Build();
 

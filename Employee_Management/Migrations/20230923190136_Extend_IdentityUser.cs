@@ -12,7 +12,7 @@ namespace Employee_Management.Migrations
                 name: "city",
                 table: "AspNetUsers",
                 type: "nvarchar(max)",
-                nullable: false,
+                nullable: true,
                 defaultValue: "");
         }
 

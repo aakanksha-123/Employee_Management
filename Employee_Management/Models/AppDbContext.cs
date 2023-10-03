@@ -83,7 +83,7 @@ namespace Employee_Management.Models
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.seed();
-            { }
+            
 
 
            

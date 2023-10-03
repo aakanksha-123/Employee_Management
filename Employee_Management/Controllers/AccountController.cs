@@ -146,6 +146,7 @@ using Employee_Management.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Employee_Management.Controllers
@@ -154,6 +155,7 @@ namespace Employee_Management.Controllers
     {
         private readonly UserManager<ApplicationUser> userManager;
         private readonly SignInManager<ApplicationUser> signInManager;
+        private ApplicationUser user;
 
         public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
         {
@@ -161,6 +163,7 @@ namespace Employee_Management.Controllers
             this.signInManager = signInManager;
         }
 
+      
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
@@ -191,10 +194,11 @@ namespace Employee_Management.Controllers
 
                 if (result.Succeeded)
                 {
-                    if(signInManager.IsSignedIn(User) && User.IsInRole("Admin")){ 
+                    if (signInManager.IsSignedIn(User) && User.IsInRole("Admin"))
+                    {
                         return RedirectToAction("ListUsers", "Administration");
 
-                }
+                    }
                     await signInManager.SignInAsync(user, isPersistent: false);
                     return RedirectToAction("Index", "Home");
                 }
@@ -211,9 +215,14 @@ namespace Employee_Management.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Login()
+        public async Task< IActionResult> Login(string returnUrl)
         {
-            return View();
+            LoginviewModel model = new LoginviewModel
+            {
+                ReturnUrl = returnUrl,
+                ExternalLogins=(await signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
+            };
+            return View(model);
         }
 
         [AcceptVerbs("Get", "Post")]
@@ -262,14 +271,74 @@ namespace Employee_Management.Controllers
             return View(model);
         }
 
-        [HttpGet]
         [AllowAnonymous]
-        public IActionResult AccessDenied()
+        [HttpPost]
+        public IActionResult ExternalLogin(string provider, string returnUrl)
         {
-            return View();
+            var redirectUrl = Url.Action("ExternalLoginCallBack","Account", new { ReturnUrl = returnUrl } );
+            var properties=signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return new ChallengeResult(provider, properties);
         }
 
-        
+
+
+        [AllowAnonymous]
+       
+        public async Task<IActionResult> ExternalLoginCallBack(string returnUrl = null, string remoteError = null)
+        {
+            returnUrl = returnUrl ?? Url.Content("~/");
+
+            LoginviewModel loginviewModel = new LoginviewModel
+            {
+                ReturnUrl = returnUrl,
+                ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
+            };
+            if (remoteError != null)
+            {
+                ModelState.AddModelError(string.Empty, $"Error from external provider:{remoteError}");
+                return View("Login", loginviewModel);
+            }
+            var info = await signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                ModelState.AddModelError(string.Empty, "Error loading external login information");
+                return View("Login", loginviewModel);
+            }
+
+            var signInResult = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, 
+                isPersistent: false, bypassTwoFactor: true);
+
+            if (signInResult.Succeeded)
+            {
+                return LocalRedirect(returnUrl);
+            }
+            else
+            {
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                if (email != null)
+                {
+                    var user=await userManager.FindByNameAsync(email);
+                    if (user == null)
+                    {
+                        user = new ApplicationUser
+                        {
+                            UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
+                            Email = info.Principal.FindFirstValue(ClaimTypes.Email)
+                        };
+                        await userManager.CreateAsync(user);
+                    }
+                    await userManager.AddLoginAsync(user, info);
+                    await signInManager.SignInAsync(user, isPersistent: false);
+
+                    return LocalRedirect(returnUrl);
+                }
+                ViewBag.ErrorTitle=$"Email claim not received from:{info.LoginProvider}";
+                ViewBag.ErrorMessage = "Please contact support on Pragim@PragimTech.com";
+
+                  return View("Error");
+            }
+        }
+
     }
 }
 

@@ -32,6 +32,8 @@ namespace Employee_Management.ViewModels
 {
     public class RegisterViewModel
     {
+
+        public string? City { get; set; }
         [Required]
         [EmailAddress]
         [Remote(action: "IsEmailInUse", controller: "Account")] // Remote validation
@@ -47,6 +49,6 @@ namespace Employee_Management.ViewModels
         [Compare("Password", ErrorMessage = "Password and confirmation password do not match")]
         public string? ConfirmPassword { get; set; }
 
-        public string? City { get; set; }    
+       
     }
 }
